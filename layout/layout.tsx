@@ -1,21 +1,20 @@
-"use client"
-import { usePathname, useSearchParams } from "next/navigation";
-import PrimeReact from "primereact/api";
+'use client';
+import { usePathname, useSearchParams } from 'next/navigation';
+import PrimeReact from 'primereact/api';
 import {
   useEventListener,
   useMountEffect,
   useResizeListener,
   useUnmountEffect,
-} from "primereact/hooks";
-import { classNames, DomHandler } from "primereact/utils";
-import React, { useCallback, useContext, useEffect, useRef } from "react";
-import AppBreadCrumb from "./AppBreadCrumb";
-import AppConfig from "./AppConfig";
-import AppProfileSidebar from "./AppProfileSidebar";
-import AppSidebar from "./AppSidebar";
-import AppTopbar from "./AppTopbar";
-import { LayoutContext } from "./context/layoutcontext";
-import type { AppTopbarRef, ChildContainerProps } from "../types/types";
+} from 'primereact/hooks';
+import { DomHandler, classNames } from 'primereact/utils';
+import React, { useCallback, useContext, useEffect, useRef } from 'react';
+import type { AppTopbarRef, ChildContainerProps } from '../types/types';
+import AppBreadCrumb from './AppBreadCrumb';
+import AppProfileSidebar from './AppProfileSidebar';
+import AppSidebar from './AppSidebar';
+import AppTopbar from './AppTopbar';
+import { LayoutContext } from './context/layoutcontext';
 
 const Layout = (props: ChildContainerProps) => {
   const {
@@ -33,7 +32,7 @@ const Layout = (props: ChildContainerProps) => {
   const searchParams = useSearchParams();
   const [bindMenuOutsideClickListener, unbindMenuOutsideClickListener] =
     useEventListener({
-      type: "click",
+      type: 'click',
       listener: (event) => {
         const isOutsideClicked = !(
           sidebarRef.current?.isSameNode(event.target as Node) ||
@@ -100,22 +99,22 @@ const Layout = (props: ChildContainerProps) => {
 
   const blockBodyScroll = () => {
     if (document.body.classList) {
-      document.body.classList.add("blocked-scroll");
+      document.body.classList.add('blocked-scroll');
     } else {
-      document.body.className += " blocked-scroll";
+      document.body.className += ' blocked-scroll';
     }
   };
 
   const unblockBodyScroll = () => {
     if (document.body.classList) {
-      document.body.classList.remove("blocked-scroll");
+      document.body.classList.remove('blocked-scroll');
     } else {
       document.body.className = document.body.className.replace(
         new RegExp(
-          "(^|\\b)" + "blocked-scroll".split(" ").join("|") + "(\\b|$)",
-          "gi"
+          '(^|\\b)' + 'blocked-scroll'.split(' ').join('|') + '(\\b|$)',
+          'gi'
         ),
-        " "
+        ' '
       );
     }
   };
@@ -162,33 +161,33 @@ const Layout = (props: ChildContainerProps) => {
   });
 
   const containerClass = classNames({
-    "layout-light": layoutConfig.colorScheme === "light",
-    "layout-dim": layoutConfig.colorScheme === "dim",
-    "layout-dark": layoutConfig.colorScheme === "dark",
-    "layout-colorscheme-menu": layoutConfig.menuTheme === "colorScheme",
-    "layout-primarycolor-menu": layoutConfig.menuTheme === "primaryColor",
-    "layout-transparent-menu": layoutConfig.menuTheme === "transparent",
-    "layout-overlay": layoutConfig.menuMode === "overlay",
-    "layout-static": layoutConfig.menuMode === "static",
-    "layout-slim": layoutConfig.menuMode === "slim",
-    "layout-slim-plus": layoutConfig.menuMode === "slim-plus",
-    "layout-horizontal": layoutConfig.menuMode === "horizontal",
-    "layout-reveal": layoutConfig.menuMode === "reveal",
-    "layout-drawer": layoutConfig.menuMode === "drawer",
-    "layout-static-inactive":
+    'layout-light': layoutConfig.colorScheme === 'light',
+    'layout-dim': layoutConfig.colorScheme === 'dim',
+    'layout-dark': layoutConfig.colorScheme === 'dark',
+    'layout-colorscheme-menu': layoutConfig.menuTheme === 'colorScheme',
+    'layout-primarycolor-menu': layoutConfig.menuTheme === 'primaryColor',
+    'layout-transparent-menu': layoutConfig.menuTheme === 'transparent',
+    'layout-overlay': layoutConfig.menuMode === 'overlay',
+    'layout-static': layoutConfig.menuMode === 'static',
+    'layout-slim': layoutConfig.menuMode === 'slim',
+    'layout-slim-plus': layoutConfig.menuMode === 'slim-plus',
+    'layout-horizontal': layoutConfig.menuMode === 'horizontal',
+    'layout-reveal': layoutConfig.menuMode === 'reveal',
+    'layout-drawer': layoutConfig.menuMode === 'drawer',
+    'layout-static-inactive':
       layoutState.staticMenuDesktopInactive &&
-      layoutConfig.menuMode === "static",
-    "layout-overlay-active": layoutState.overlayMenuActive,
-    "layout-mobile-active": layoutState.staticMenuMobileActive,
-    "p-input-filled": layoutConfig.inputStyle === "filled",
-    "p-ripple-disabled": !layoutConfig.ripple,
-    "layout-sidebar-active": layoutState.sidebarActive,
-    "layout-sidebar-anchored": layoutState.anchored,
+      layoutConfig.menuMode === 'static',
+    'layout-overlay-active': layoutState.overlayMenuActive,
+    'layout-mobile-active': layoutState.staticMenuMobileActive,
+    'p-input-filled': layoutConfig.inputStyle === 'filled',
+    'p-ripple-disabled': !layoutConfig.ripple,
+    'layout-sidebar-active': layoutState.sidebarActive,
+    'layout-sidebar-anchored': layoutState.anchored,
   });
 
   return (
     <React.Fragment>
-      <div className={classNames("layout-container", containerClass)}>
+      <div className={classNames('layout-container', containerClass)}>
         <div
           ref={sidebarRef}
           className="layout-sidebar"
@@ -204,7 +203,7 @@ const Layout = (props: ChildContainerProps) => {
           <div className="layout-content">{props.children}</div>
         </div>
         <AppProfileSidebar />
-        <AppConfig />
+        {/* <AppConfig /> */}
         <div className="layout-mask"></div>
       </div>
     </React.Fragment>
@@ -212,3 +211,4 @@ const Layout = (props: ChildContainerProps) => {
 };
 
 export default Layout;
+
