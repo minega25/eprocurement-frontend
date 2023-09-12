@@ -1,35 +1,49 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { FilterMatchMode, FilterOperator } from "primereact/api";
-import { Button } from "primereact/button";
-import { Column } from "primereact/column";
-import { DataTable, DataTableFilterMeta } from "primereact/datatable";
-import { InputText } from "primereact/inputtext";
-import { ProgressBar } from "primereact/progressbar";
-import React, { useEffect, useRef, useState } from "react";
-import { CustomerService } from "../../../../demo/service/CustomerService";
-import type { Demo } from "../../../../types/types";
+'use client';
+import useAuth from '@/layout/hooks/useAuth';
+import { useRouter } from 'next/navigation';
+import { FilterMatchMode, FilterOperator } from 'primereact/api';
+import { Button } from 'primereact/button';
+import { Column } from 'primereact/column';
+import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
+import { InputText } from 'primereact/inputtext';
+import { ProgressBar } from 'primereact/progressbar';
+import React, { useEffect, useRef, useState } from 'react';
+import type { Demo } from '../../../../types/types';
 
 function List() {
-  const [customers, setCustomers] = useState<Demo.Customer[]>([]);
+  const { token } = useAuth();
+  const [users, setUsers] = useState<any[]>([]);
   const [filters, setFilters] = useState<DataTableFilterMeta>({});
   const [loading, setLoading] = useState(true);
-  const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
   const router = useRouter();
   const dt = useRef(null);
 
-  const getCustomers = (data: Demo.Customer[]) => {
-    return [...(data || [])].map((d) => {
-      d.date = new Date(d.date);
-      return d;
-    });
+  const getUsers = async () => {
+    setLoading(true);
+    const response = await fetch('http://localhost:3000/api/users', {
+      method: 'GET',
+      //@ts-ignore
+      headers: {
+        'Content-Type': 'application/json',
+        authorization: token,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => data)
+      .catch((e) => {
+        console.error(e);
+        setLoading(false);
+      });
+    setLoading(false);
+    setUsers(response);
   };
 
   const formatDate = (value: Date) => {
-    return value.toLocaleDateString("en-US", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
+    return value.toLocaleDateString('en-US', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
     });
   };
   const clearFilter = () => {
@@ -43,7 +57,7 @@ function List() {
         operator: FilterOperator.AND,
         constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
       },
-      "country.name": {
+      'country.name': {
         operator: FilterOperator.AND,
         constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
       },
@@ -54,21 +68,18 @@ function List() {
       },
       activity: { value: null, matchMode: FilterMatchMode.BETWEEN },
     });
-    setGlobalFilterValue("");
+    setGlobalFilterValue('');
   };
 
   useEffect(() => {
-    CustomerService.getCustomersLarge().then((data) => {
-      setCustomers(getCustomers(data));
-      setLoading(false);
-    });
+    getUsers();
     initFilters();
   }, []);
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     let _filters = { ...filters };
-    (_filters["global"] as any).value = value;
+    (_filters['global'] as any).value = value;
     setFilters(_filters);
     setGlobalFilterValue(value);
   };
@@ -91,7 +102,7 @@ function List() {
           label="Add New"
           className="w-full sm:w-auto flex-order-0 sm:flex-order-1"
           outlined
-          onClick={() => router.push("/profile/create")}
+          onClick={() => router.push('/profile/create')}
         />
       </div>
     );
@@ -106,32 +117,6 @@ function List() {
     );
   };
 
-  const countryBodyTemplate = (customer: Demo.Customer) => {
-    return (
-      <>
-        <img
-          alt={customer.country.name}
-          src={`/demo/images/flag/flag_placeholder.png`}
-          className={"w-2rem mr-2 flag flag-" + customer.country.code}
-        />
-        <span className="image-text">{customer.country.name}</span>
-      </>
-    );
-  };
-
-  const createdByBodyTemplate = (customer: Demo.Customer) => {
-    return (
-      <div className="inline-flex align-items-center">
-        <img
-          alt={customer.representative.name}
-          src={`/demo/images/avatar/${customer.representative.image}`}
-          className="w-2rem mr-2"
-        />
-        <span>{customer.representative.name}</span>
-      </div>
-    );
-  };
-
   const dateBodyTemplate = (customer: Demo.Customer) => {
     return formatDate(customer.date);
   };
@@ -141,7 +126,7 @@ function List() {
       <ProgressBar
         value={customer.activity}
         showValue={false}
-        style={{ height: ".5rem" }}
+        style={{ height: '.5rem' }}
       />
     );
   };
@@ -152,7 +137,7 @@ function List() {
     <div className="card">
       <DataTable
         ref={dt}
-        value={customers}
+        value={users}
         header={header}
         paginator
         rows={10}
@@ -163,43 +148,32 @@ function List() {
         loading={loading}
       >
         <Column
-          field="name"
-          header="Name"
+          field="firstName"
+          header="First Name"
           sortable
-          body={nameBodyTemplate}
           headerClassName="white-space-nowrap"
-          style={{ width: "25%" }}
+          style={{ width: '25%' }}
         ></Column>
         <Column
-          field="country.name"
-          header="Country"
+          field="lastName"
+          header="Last Name"
           sortable
-          body={countryBodyTemplate}
           headerClassName="white-space-nowrap"
-          style={{ width: "25%" }}
+          style={{ width: '25%' }}
         ></Column>
         <Column
-          field="date"
+          field="createdAt"
           header="Join Date"
           sortable
-          body={dateBodyTemplate}
+          // body={dateBodyTemplate}
           headerClassName="white-space-nowrap"
-          style={{ width: "25%" }}
+          style={{ width: '25%' }}
         ></Column>
         <Column
-          field="representative.name"
-          header="Created By"
-          body={createdByBodyTemplate}
+          field="role"
+          header="Role"
           headerClassName="white-space-nowrap"
-          style={{ width: "25%" }}
-          sortable
-        ></Column>
-        <Column
-          field="activity"
-          header="Activity"
-          body={activityBodyTemplate}
-          headerClassName="white-space-nowrap"
-          style={{ width: "25%" }}
+          style={{ width: '25%' }}
           sortable
         ></Column>
       </DataTable>
@@ -208,3 +182,4 @@ function List() {
 }
 
 export default List;
+

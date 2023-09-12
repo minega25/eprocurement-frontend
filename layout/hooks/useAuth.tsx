@@ -1,8 +1,16 @@
 'use client';
-import { useState } from 'react';
+import jwt from 'jsonwebtoken';
+import { useEffect, useState } from 'react';
 
 const useAuth = () => {
-  const [token, setToken] = useState(localStorage.getItem('jwtToken') || null);
+  const [token, setToken] = useState(localStorage.getItem('jwtToken') || '');
+  const [user, setUser] = useState({ role: null });
+
+  useEffect(() => {
+    jwt.verify(token, 'eprocurementapp', (err: any, decoded: any) => {
+      setUser(decoded);
+    });
+  }, [token]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -13,10 +21,6 @@ const useAuth = () => {
         },
         body: JSON.stringify({ email, password }),
       });
-
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
 
       const data = await response.json();
       const jwtToken = data.token;
@@ -89,7 +93,7 @@ const useAuth = () => {
     setToken('');
   };
 
-  return { token, login, logout, register, verify };
+  return { token, login, logout, register, verify, user };
 };
 
 export default useAuth;
