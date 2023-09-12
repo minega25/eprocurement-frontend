@@ -1,28 +1,21 @@
 //@ts-nocheck
 'use client';
-import useProcRequest from '@/layout/hooks/useProcRequest';
-import { showToast } from '@/layout/utils';
+import useTender from '@/layout/hooks/useTender';
 import { FilterMatchMode, FilterOperator } from 'primereact/api';
-import { Button } from 'primereact/button';
 import { Chip } from 'primereact/chip';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
-import { Dialog } from 'primereact/dialog';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Nullable } from 'primereact/ts-helpers';
 import { useEffect, useRef, useState } from 'react';
 
-const PendingProcurementRequests = () => {
+const Tenders = () => {
   const toast = useRef(null);
-  const { requests, loading, updateRequest, setRequests } = useProcRequest();
-  const pendingRequests = requests.filter((request) => !request.is_active);
+  const { tenders, loading } = useTender();
   const [filters1, setFilters1] = useState(null);
   const [globalFilterValue1, setGlobalFilterValue1] = useState('');
-  const [selectedRequests, setSelectedRequests] = useState([]);
-  const [displayConfirmation, setDisplayConfirmation] = useState();
-  const [loadingApprove, setLoadingApprove] = useState();
 
   const onGlobalFilterChange1 = (e: { target: { value: any } }) => {
     const value = e.target.value;
@@ -32,51 +25,6 @@ const PendingProcurementRequests = () => {
     setFilters1(_filters1);
     setGlobalFilterValue1(value);
   };
-
-  const approveRequests = async () => {
-    setDisplayConfirmation(false);
-    setLoadingApprove(true);
-    await Promise.all(
-      selectedRequests.map(async ({ id }) => {
-        return await updateRequest(id, {
-          is_active: true,
-        });
-      })
-    );
-
-    setRequests(
-      requests.filter((u) => {
-        return !selectedRequests.find((s) => s.id === u.id);
-      })
-    );
-    setLoadingApprove(false);
-  };
-
-  const confirmationDialogFooter = (
-    <>
-      <Button
-        type="button"
-        label="No"
-        icon="pi pi-times"
-        onClick={() => setDisplayConfirmation(false)}
-        className="p-button-text"
-      />
-      <Button
-        type="button"
-        label="Yes"
-        icon="pi pi-check"
-        onClick={() => {
-          approveRequests();
-          showToast(toast, {
-            severity: 'success',
-            message: 'Requests approved successfully',
-          });
-        }}
-        className="p-button-text"
-        autoFocus
-      />
-    </>
-  );
 
   const initFilters1 = () => {
     setFilters1({
@@ -126,32 +74,6 @@ const PendingProcurementRequests = () => {
             placeholder="Search requests"
           />
         </span>
-        {selectedRequests.length > 0 && (
-          <span>
-            <Button
-              label="Approve"
-              icon="pi pi-check"
-              className="p-button-primary"
-              onClick={() => setDisplayConfirmation(true)}
-            />
-            <Dialog
-              header="Confirmation"
-              visible={displayConfirmation}
-              onHide={() => setDisplayConfirmation(false)}
-              style={{ width: '350px' }}
-              modal
-              footer={confirmationDialogFooter}
-            >
-              <div className="flex align-items-center justify-content-center">
-                <i
-                  className="pi pi-exclamation-triangle mr-3"
-                  style={{ fontSize: '2rem' }}
-                />
-                <span>Are you sure you want to proceed?</span>
-              </div>
-            </Dialog>
-          </span>
-        )}
       </div>
     );
   };
@@ -231,23 +153,20 @@ const PendingProcurementRequests = () => {
         <Toast ref={toast} />
 
         <div className="card">
-          <h5>All Pending Procurement Requests</h5>
+          <h5>All Tenders</h5>
           <DataTable
-            value={pendingRequests}
+            value={tenders}
             stripedRows
             paginator
             className="p-datatable-gridlines"
             showGridlines
             rows={10}
-            dataKey="id"
+            dataKey="ID"
             filters={filters1}
             loading={loading}
-            emptyMessage="No pending procurement requests found."
+            emptyMessage="No tenders found."
             header={header1}
             editMode="cell"
-            selectionMode="multiple"
-            selection={selectedRequests}
-            onSelectionChange={(e) => setSelectedRequests(e.value)}
           >
             <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
             <Column sortable field="id" header="id" />
@@ -259,38 +178,21 @@ const PendingProcurementRequests = () => {
               onCellEditComplete={onCellEditComplete}
             />
             <Column
-              field="items_needed"
-              header="Items needed"
-              body={(rowdata) => chipBodyTemplate(rowdata.items_needed)}
-              editor={(options) => cellEditor(options)}
-              onCellEditComplete={onCellEditComplete}
-            />
-            <Column
-              field="quantities"
-              header="Quantities"
-              body={(rowdata) => chipBodyTemplate(rowdata.quantities)}
-              editor={(options) => cellEditor(options)}
-              onCellEditComplete={onCellEditComplete}
-            />
-            <Column
               sortable
-              field="budget"
-              header="Budget"
-              dataType="numeric"
-              body={priceBodyTemplate}
+              field="submission_deadline"
+              header="Submission deadline"
               editor={(options) => cellEditor(options)}
               onCellEditComplete={onCellEditComplete}
             />
             <Column
-              header="Preferred vendors"
-              field="preferred_vendor"
-              body={(rowdata) => chipBodyTemplate(rowdata.preferred_vendor)}
+              header="Requirements"
+              field="requirements"
               editor={(options) => cellEditor(options)}
               onCellEditComplete={onCellEditComplete}
             />
             <Column
-              header="Active"
-              field="is_active"
+              header="Published"
+              field="is_published"
               editor={(options) => cellEditor(options)}
               onCellEditComplete={onCellEditComplete}
             />
@@ -301,4 +203,4 @@ const PendingProcurementRequests = () => {
   );
 };
 
-export default PendingProcurementRequests;
+export default Tenders;

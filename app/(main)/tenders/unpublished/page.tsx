@@ -1,21 +1,29 @@
 //@ts-nocheck
 'use client';
-import useProcRequest from '@/layout/hooks/useProcRequest';
+import useTender from '@/layout/hooks/useTender';
 import { FilterMatchMode, FilterOperator } from 'primereact/api';
+import { Button } from 'primereact/button';
 import { Chip } from 'primereact/chip';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
+import { Dialog } from 'primereact/dialog';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Nullable } from 'primereact/ts-helpers';
 import { useEffect, useRef, useState } from 'react';
 
-const ProcurementRequests = () => {
+import { showToast } from '@/layout/utils';
+
+const Tenders = () => {
   const toast = useRef(null);
-  const { requests, loading } = useProcRequest();
+  const { tenders, loading, updateTender, setTenders } = useTender();
+  const unPublishedTenders = tenders.filter((tender) => !tender.is_published);
   const [filters1, setFilters1] = useState(null);
   const [globalFilterValue1, setGlobalFilterValue1] = useState('');
+  const [selectedTenders, setSelectedTenders] = useState([]);
+  const [displayConfirmation, setDisplayConfirmation] = useState();
+  const [loadingApprove, setLoadingApprove] = useState(false);
 
   const onGlobalFilterChange1 = (e: { target: { value: any } }) => {
     const value = e.target.value;
@@ -25,6 +33,51 @@ const ProcurementRequests = () => {
     setFilters1(_filters1);
     setGlobalFilterValue1(value);
   };
+
+  const approveTender = async () => {
+    setDisplayConfirmation(false);
+    setLoadingApprove(true);
+    await Promise.all(
+      selectedTenders.map(async ({ id }) => {
+        return await updateTender(id, {
+          is_published: true,
+        });
+      })
+    );
+
+    setTenders(
+      tenders.filter((u) => {
+        return !selectedTenders.find((s) => s.id === u.id);
+      })
+    );
+    setLoadingApprove(false);
+  };
+
+  const confirmationDialogFooter = (
+    <>
+      <Button
+        type="button"
+        label="No"
+        icon="pi pi-times"
+        onClick={() => setDisplayConfirmation(false)}
+        className="p-button-text"
+      />
+      <Button
+        type="button"
+        label="Yes"
+        icon="pi pi-check"
+        onClick={() => {
+          approveTender();
+          showToast(toast, {
+            severity: 'success',
+            message: 'Tender published successfully',
+          });
+        }}
+        className="p-button-text"
+        autoFocus
+      />
+    </>
+  );
 
   const initFilters1 = () => {
     setFilters1({
@@ -56,13 +109,6 @@ const ProcurementRequests = () => {
     setGlobalFilterValue1('');
   };
 
-  const priceBodyTemplate = (rowData: { Price: number | bigint }) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'RWF',
-    }).format(rowData.budget);
-  };
-
   const renderHeader1 = () => {
     return (
       <div className="flex justify-content-between">
@@ -71,9 +117,35 @@ const ProcurementRequests = () => {
           <InputText
             value={globalFilterValue1}
             onChange={onGlobalFilterChange1}
-            placeholder="Search requests"
+            placeholder="Search tenders"
           />
         </span>
+        {selectedTenders.length > 0 && (
+          <span>
+            <Button
+              label="Approve"
+              icon="pi pi-check"
+              className="p-button-primary"
+              onClick={() => setDisplayConfirmation(true)}
+            />
+            <Dialog
+              header="Confirmation"
+              visible={displayConfirmation}
+              onHide={() => setDisplayConfirmation(false)}
+              style={{ width: '350px' }}
+              modal
+              footer={confirmationDialogFooter}
+            >
+              <div className="flex align-items-center justify-content-center">
+                <i
+                  className="pi pi-exclamation-triangle mr-3"
+                  style={{ fontSize: '2rem' }}
+                />
+                <span>Are you sure you want to proceed?</span>
+              </div>
+            </Dialog>
+          </span>
+        )}
       </div>
     );
   };
@@ -153,20 +225,23 @@ const ProcurementRequests = () => {
         <Toast ref={toast} />
 
         <div className="card">
-          <h5>All Procurement Requests</h5>
+          <h5>All Un-Published Tenders</h5>
           <DataTable
-            value={requests}
+            value={unPublishedTenders}
             stripedRows
             paginator
             className="p-datatable-gridlines"
             showGridlines
             rows={10}
-            dataKey="ID"
+            dataKey="id"
             filters={filters1}
             loading={loading}
-            emptyMessage="No requests found."
+            emptyMessage="No tenders found."
             header={header1}
             editMode="cell"
+            selectionMode="multiple"
+            selection={selectedTenders}
+            onSelectionChange={(e) => setSelectedTenders(e.value)}
           >
             <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
             <Column sortable field="id" header="id" />
@@ -178,38 +253,21 @@ const ProcurementRequests = () => {
               onCellEditComplete={onCellEditComplete}
             />
             <Column
-              field="items_needed"
-              header="Items needed"
-              body={(rowdata) => chipBodyTemplate(rowdata.items_needed)}
-              editor={(options) => cellEditor(options)}
-              onCellEditComplete={onCellEditComplete}
-            />
-            <Column
-              field="quantities"
-              header="Quantities"
-              body={(rowdata) => chipBodyTemplate(rowdata.quantities)}
-              editor={(options) => cellEditor(options)}
-              onCellEditComplete={onCellEditComplete}
-            />
-            <Column
               sortable
-              field="budget"
-              header="Budget"
-              dataType="numeric"
-              body={priceBodyTemplate}
+              field="submission_deadline"
+              header="Submission deadline"
               editor={(options) => cellEditor(options)}
               onCellEditComplete={onCellEditComplete}
             />
             <Column
-              header="Preferred vendors"
-              field="preferred_vendor"
-              body={(rowdata) => chipBodyTemplate(rowdata.preferred_vendor)}
+              header="Requirements"
+              field="requirements"
               editor={(options) => cellEditor(options)}
               onCellEditComplete={onCellEditComplete}
             />
             <Column
-              header="Active"
-              field="is_active"
+              header="Published"
+              field="is_published"
               editor={(options) => cellEditor(options)}
               onCellEditComplete={onCellEditComplete}
             />
@@ -220,4 +278,4 @@ const ProcurementRequests = () => {
   );
 };
 
-export default ProcurementRequests;
+export default Tenders;

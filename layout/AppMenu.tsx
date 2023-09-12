@@ -29,28 +29,24 @@ const AppMenu = () => {
             },
           ],
         },
-        // {
-        //   label: 'Tenders',
-        //   icon: 'pi pi-fw pi-chart-pie',
-        //   items: [
-        //     {
-        //       label: 'All Tenders',
-        //       to: '/rentals',
-        //     },
-        //     {
-        //       label: 'bids',
-        //       to: '/bids',
-        //     },
-        //     {
-        //       label: 'New Tender',
-        //       to: '/rentals/new',
-        //     },
-        //     {
-        //       label: 'Lookup Tender',
-        //       to: '/rentals/rental-lookup',
-        //     },
-        //   ],
-        // },
+        {
+          label: 'Tenders',
+          icon: 'pi pi-fw pi-chart-pie',
+          items: [
+            {
+              label: 'All Tenders',
+              to: '/tenders',
+            },
+            {
+              label: 'Unpublished Tenders',
+              to: '/tenders/unpublished',
+            },
+            {
+              label: 'New Tender',
+              to: '/tenders/new',
+            },
+          ],
+        },
       ],
     },
   ];
