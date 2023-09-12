@@ -1,15 +1,18 @@
 'use client';
 import useAuth from '@/layout/hooks/useAuth';
+import { showToast } from '@/layout/utils';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from 'primereact/button';
 import { Checkbox } from 'primereact/checkbox';
 import { InputText } from 'primereact/inputtext';
-import { useContext, useState } from 'react';
+import { Toast } from 'primereact/toast';
+import { useContext, useRef, useState } from 'react';
 import { LayoutContext } from '../../../../layout/context/layoutcontext';
 import type { Page } from '../../../../types/types';
 
 const Login: Page = () => {
+  const toast = useRef(null);
   const { login } = useAuth();
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
@@ -19,11 +22,19 @@ const Login: Page = () => {
   async function handleLogin(e: any) {
     e.preventDefault();
     const response = await login(e.target.email.value, e.target.password.value);
+    if (!response) {
+      showToast(toast, {
+        severity: 'error',
+        summary: 'Error',
+        message: 'Incorrect email or password',
+      });
+    }
     if (response) router.push('/');
   }
 
   return (
     <>
+      <Toast ref={toast} />
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 1600 800"
